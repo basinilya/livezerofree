@@ -1,0 +1,5 @@
+*.o
+*.bin
+*.bak
+/livezerofree
+/Debug/

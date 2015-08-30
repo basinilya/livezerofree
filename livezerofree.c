@@ -9,10 +9,12 @@
 #include <fcntl.h> /* for fallocate() */
 #include <linux/fs.h> /* for FIBMAP */
 #include <sys/ioctl.h> /* for ioctl() */
-#include <unistd.h> /* for write() */
+#include <unistd.h> /* for write(), sync() */
 #include <sys/statfs.h> /* for statfs() */
 
 #include "mylastheader.h"
+
+enum { _off_t_is_64 = 1/(sizeof(off_t)-4) };
 
 static char human_size1(double *pSize) {
 	static const char units[] = "BKMGT";
@@ -246,6 +248,7 @@ int main(int argc, char* argv[])
 		time_t_asctime(smallbuf, time(NULL));
 		timestringlen = sprintf(timestring, "zerofree first block, %s", smallbuf);
 		rc = write(fdFile, timestring, timestringlen);
+		sync();
 
 		log(INFO, "file created: %s: " FMT_S, HUMAN_SIZE(nfilebytes), filename);
 

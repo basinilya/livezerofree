@@ -1,3 +1,5 @@
+CFLAGS = -D_FILE_OFFSET_BITS=64
+
 TARGET = livezerofree
 OFILES = logging.o livezerofree.o df.o
 MPOINT = /media/testlivezerofree

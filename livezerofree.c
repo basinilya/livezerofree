@@ -170,6 +170,7 @@ int main(int argc, char* argv[])
 		pSysError(ERR, "cannot open device");
 		return 1;
 	}
+	setvbuf(fdev, NULL, _IOFBF, 10*1024*1024);
 
 	rc = 1;
 

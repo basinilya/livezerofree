@@ -32,7 +32,7 @@ int myprog_df(const char *filename, char *devicename, int devicenamesz)
 			perror("dup2() failed");
 		} else {
 			close(fds[1]);
-			if (-1 == execlp("df", "df", "--", filename, NULL)) {
+			if (-1 == execlp("df", "df", "--portability", "--", filename, NULL)) {
 				perror("execlp() failed");
 			}
 		}
@@ -63,6 +63,10 @@ int myprog_df(const char *filename, char *devicename, int devicenamesz)
 			n = devicenamesz;
 			nitems = fscanf(in, format, devicename, &n);
 			if (nitems == EOF) break;
+			if (nitems != 1) {
+				fprintf(stderr, "Failed to parse `df` output\n");
+				goto ennd3;
+			}
 		}
 
 		if (ferror(in)) {

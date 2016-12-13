@@ -152,11 +152,13 @@ int main(int argc, char* argv[])
 	// chdir to file's directory
 	sz = dirname_len(filename);
 	if (sz != 0) {
+		char save = filename[sz];
 		filename[sz] = '\0'; /* keep last slash (for "/") */
 		if (0 != chdir(filename)) {
 			pSysError(ERR, "chdir('" FMT_S "') failed: ", filename);
 			return 1;
 		}
+		filename[sz] = save;
 		filename += sz;
 	}
 

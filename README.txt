@@ -7,3 +7,4 @@ No need to unmount - uses OS API.
 Tested with Ext4, Kernel 3.17, glibc 2.20
 see fallocate(2) for supported file systems
 
+Note: on VirtualBox .vdi container `dd if=/dev/zero` will perform better than this program, because VBox handles all-zero writes in a smart way.

@@ -172,7 +172,7 @@ static char sector[512];
 
 static char line[16+2+(3*512)+1+512+2] = PART_ADDR PART_HEX PART_TEXT;
 
-static size_t freadfully() {
+static size_t my_readfully() {
 	size_t nb, total = 0;
 	for (;;) {
 		nb = fread(&sector, 1, 512 - total, in);
@@ -185,6 +185,14 @@ static size_t freadfully() {
 }
 
 //static void (unsigned char byte
+static int my_isprint(int c) {
+	int res = isprint(c);
+	return res;
+}
+
+static void my_write(size_t nb) {
+	fwrite(line, 1, nb, out);
+}
 
 int main(int argc, char* argv[])
 {
@@ -201,14 +209,14 @@ int main(int argc, char* argv[])
 	}
 
 	for (int c = 0; c < 256; c++) {
-		printables[c] = (unsigned char)isprint(c);
+		printables[c] = my_isprint(c) ? 1 : 0;
 	}
 
-	pos = 0xAABBCCDDEEFFLL;  // TODO:
+	//pos = 0xAABBCCDDEEFFLL;  // TODO:
 
 	for (;;pos += 512) {
-		nb = freadfully();
-		nb = 500; // TODO:
+		nb = my_readfully();
+		//nb = 500; // TODO:
 		if (nb != 0) {
 			for (i = 0; i < 16; i++) {
 				hexdigit = hexchars[(pos >> (i*4)) & 0xF];
@@ -233,13 +241,14 @@ int main(int argc, char* argv[])
 				pos_hex++;
 				line[pos_text] = '\n';
 			}
-			fwrite(line, 1, pos_text + 1, out);
+			my_write(pos_text + 1);
 		}
 		if (nb != 512) {
 			if (ferror(in)) {
 				pSysError(ERR, "fread() failed");
 				_exit(1);
 			}
+			break;
 		}
 	}
 	return 0;

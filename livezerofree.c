@@ -2,6 +2,9 @@
 #include "mylogging.h"
 #include "mydf.h"
 
+#include <ctype.h>
+#include <stdint.h>
+#include <stddef.h>
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -118,7 +121,131 @@ static void time_t_asctime(char buf1[100], time_t timestamp)
 
 #define HUMAN_SIZE(llsize) human_size2(smallbuf, llsize)
 
+static unsigned char printables[256];
+static const char hexchars[] = "0123456789abcdef";
+static FILE *in;
+static FILE *out;
+static char sector[512];
+
+#define PART_ADDR "****************: "
+#define PART_HEX \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"" \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		"** ** ** ** ** ** ** ** ** ** ** ** ** ** ** ** " \
+		" "
+#define PART_TEXT \
+		"________________________________________________________________________________________________________________________________" \
+		"________________________________________________________________________________________________________________________________" \
+		"________________________________________________________________________________________________________________________________" \
+		"________________________________________________________________________________________________________________________________" \
+		"\n"
+
+static char line[16+2+(3*512)+1+512+2] = PART_ADDR PART_HEX PART_TEXT;
+
+static size_t freadfully() {
+	size_t nb, total = 0;
+	for (;;) {
+		nb = fread(&sector, 1, 512 - total, in);
+		total += nb;
+		if (total == 512 || feof(in) || ferror(in)) {
+			break;
+		}
+	}
+	return total;
+}
+
+//static void (unsigned char byte
+
 int main(int argc, char* argv[])
+{
+	uint64_t pos = 0;
+	size_t nb;
+	int pos_hex, pos_text;
+	int i;
+	char hexdigit, letter;
+	in = stdin;
+	out = stdout;
+	if (!freopen(NULL, "rb", in)) {
+		pSysError(ERR, "freopen() failed");
+		_exit(1);
+	}
+
+	for (int c = 0; c < 256; c++) {
+		printables[c] = (unsigned char)isprint(c);
+	}
+
+	pos = 0xAABBCCDDEEFFLL;  // TODO:
+
+	for (;;pos += 512) {
+		nb = freadfully();
+		nb = 500; // TODO:
+		if (nb != 0) {
+			for (i = 0; i < 16; i++) {
+				hexdigit = hexchars[(pos >> (i*4)) & 0xF];
+				line[16 - i] = hexdigit;
+			}
+			pos_hex = sizeof(PART_ADDR) - 1;
+			pos_text = sizeof(PART_ADDR) - 1 + sizeof(PART_HEX) - 1;
+			for (i = 0; i < nb; i++) {
+				unsigned char byte = sector[i];
+				hexdigit = hexchars[(byte >> 4) & 0xF];
+				line[pos_hex++] = hexdigit;
+				hexdigit = hexchars[byte & 0xF];
+				line[pos_hex++] = hexdigit;
+				pos_hex++;
+
+				letter = printables[byte] ? byte : '.';
+				line[pos_text++] = letter;
+			}
+			for (; i < 512; i++) {
+				line[pos_hex++] = ' ';
+				line[pos_hex++] = ' ';
+				pos_hex++;
+				line[pos_text] = '\n';
+			}
+			fwrite(line, 1, pos_text + 1, out);
+		}
+		if (nb != 512) {
+			if (ferror(in)) {
+				pSysError(ERR, "fread() failed");
+				_exit(1);
+			}
+		}
+	}
+	return 0;
+}
+
+int main1(int argc, char* argv[])
 {
 	typedef char bigblock_t[16384];
 	static const bigblock_t zeroblock = { 0 };

@@ -1,4 +1,5 @@
-CFLAGS = -D_FILE_OFFSET_BITS=64
+CFLAGS = -D_FILE_OFFSET_BITS=64 -g -O0
+LDFLAGS = -g -O0
 
 TARGET = livezerofree
 OFILES = logging.o livezerofree.o df.o

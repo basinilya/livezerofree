@@ -2,7 +2,7 @@ CFLAGS = -D_FILE_OFFSET_BITS=64 -g -O0
 LDFLAGS = -g -O0
 
 TARGET = xxd64
-OFILES = logging.o xxd64.o df.o
+OFILES = logging.o xxd64.o
 MPOINT = /media/testxxd64
 IMGFILE = test.bin
 IMGLINK = $(MPOINT)/x/$(IMGFILE)
@@ -11,7 +11,7 @@ MKFS = mkfs.ext4
 
 $(TARGET): $(OFILES)
 
-*.o: mylastheader.h mylogging.h mydf.h
+*.o: mylastheader.h mylogging.h
 
 cleanall: clean
 	@sudo $(MAKE) cleanroot

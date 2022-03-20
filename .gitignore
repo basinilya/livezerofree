@@ -1,5 +1,7 @@
 *.o
 *.bin
 *.bak
-/livezerofree
 /Debug/
+.gdb_history
+.settings/
+/xxd64

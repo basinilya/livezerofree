@@ -1,9 +1,9 @@
 CFLAGS = -D_FILE_OFFSET_BITS=64 -g -O0
 LDFLAGS = -g -O0
 
-TARGET = livezerofree
-OFILES = logging.o livezerofree.o df.o
-MPOINT = /media/testlivezerofree
+TARGET = xxd64
+OFILES = logging.o xxd64.o df.o
+MPOINT = /media/testxxd64
 IMGFILE = test.bin
 IMGLINK = $(MPOINT)/x/$(IMGFILE)
 GARBAGEFILE = garbage.bin
@@ -37,10 +37,10 @@ testpre: $(IMGLINK) $(GARBAGEFILE)
 testroot: $(IMGLINK) $(GARBAGEFILE) testpre
 	sync
 	echo 1 > /proc/sys/vm/drop_caches
-	./livezerofree $(MPOINT)/bigfile
+	./xxd64 $(MPOINT)/bigfile
 	sync
 	echo 1 > /proc/sys/vm/drop_caches
-	./livezerofree $(MPOINT)/bigfile
+	./xxd64 $(MPOINT)/bigfile
 
 $(IMGLINK): $(MPOINT) $(IMGFILE)
 	mount | grep $(MPOINT) >/dev/null || mount -oloop $(IMGFILE) $(MPOINT)

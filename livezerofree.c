@@ -212,7 +212,7 @@ int main(int argc, char* argv[])
 		if (nb != 0) {
 			for (i = 0; i < 16; i++) {
 				hexdigit = hexchars[(pos >> (i*4)) & 0xF];
-				line[16 - i] = hexdigit;
+				line[16 - i - 1] = hexdigit;
 			}
 			pos_hex = sizeof(PART_ADDR) - 1;
 			pos_text = sizeof(PART_ADDR) - 1 + sizeof(PART_HEX) - 1;
